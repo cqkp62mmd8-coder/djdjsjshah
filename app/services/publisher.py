@@ -1,17 +1,17 @@
 from core.logger import log
-from storage.analytics import save_deal
+from core.config import settings
 
 async def publish_message(item):
 
     text = item["text"]
     score = item["score"]
+    links = item.get("links", [])
 
-    final_text = f"🔥 [{score}/10]\n\n{text}"
+    final_text = f"🔥 Fırsat Skoru: {score}/10\n\n{text}"
 
-    # analytics pipeline
-    save_deal(item)
+    # burada TELEGRAM SEND BAĞLANACAK
+    # (client inject edeceğiz main'de)
 
-    log.info(f"PUBLISHED | score={score}")
+    log.info(f"Published score={score}")
 
-    # burada Telegram send gelecek (inject edilecek)
     return final_text

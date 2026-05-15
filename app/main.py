@@ -8,10 +8,11 @@ from workers.processor import worker_loop
 client = TelegramClient("session", settings.API_ID, settings.API_HASH)
 
 async def start_workers():
-    for i in range(4):  # scalable concurrency layer
+    for i in range(4):
         asyncio.create_task(worker_loop(i))
 
 async def main():
+
     await client.start()
 
     @client.on(events.NewMessage(chats=[]))

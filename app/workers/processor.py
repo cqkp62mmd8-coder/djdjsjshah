@@ -4,14 +4,19 @@ from services.publisher import publish_message
 from core.logger import log
 
 async def worker_loop(worker_id: int):
-    log.info(f"Worker-{worker_id} started")
+
+    log.info(f"Worker-{worker_id} online")
 
     while True:
         item = await queue_manager.pop()
 
+        if not item:
+            continue
+
         try:
             await publish_message(item)
-        except Exception as e:
-            log.error(f"Worker-{worker_id} error: {e}")
 
-        await asyncio.sleep(0.2)
+        except Exception as e:
+            log.error(f"Worker-{worker_id} failed: {e}")
+
+        await asyncio.sleep(0.1)

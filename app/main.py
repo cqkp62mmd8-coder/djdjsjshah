@@ -1,25 +1,25 @@
 import asyncio
 from telethon import TelegramClient, events
+
 from core.config import settings
-from core.logger import log
-from handlers.message_handler import handle_message
+from handlers.listener import on_telegram_message
+from workers.processor import worker_loop
 
 client = TelegramClient("session", settings.API_ID, settings.API_HASH)
 
-@client.on(events.NewMessage(chats=[]))
-async def on_message(event):
-    result = await handle_message(event.message.text)
-
-    if not result:
-        return
-
-    log.info(f"Accepted: score={result['score']}")
-    await client.send_message(settings.CHANNEL_ID, result["text"])
-
+async def start_workers():
+    for i in range(4):  # scalable concurrency layer
+        asyncio.create_task(worker_loop(i))
 
 async def main():
     await client.start()
-    log.info("System started")
+
+    @client.on(events.NewMessage(chats=[]))
+    async def handler(event):
+        await on_telegram_message(event)
+
+    await start_workers()
+
     await client.run_until_disconnected()
 
 if __name__ == "__main__":

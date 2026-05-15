@@ -1,15 +1,15 @@
-import asyncio
+import json
+from core.redis import redis_client, QUEUE_KEY
 
-class QueueManager:
-    def __init__(self, size=100):
-        self.queue = asyncio.Queue(maxsize=size)
+class RedisQueue:
 
-    async def push(self, item):
-        if self.queue.full():
-            await self.queue.get()  # backpressure strategy
-        await self.queue.put(item)
+    async def push(self, item: dict):
+        await redis_client.rpush(QUEUE_KEY, json.dumps(item))
 
     async def pop(self):
-        return await self.queue.get()
+        data = await redis_client.blpop(QUEUE_KEY, timeout=0)
+        if not data:
+            return None
+        return json.loads(data[1])
 
-queue_manager = QueueManager()
+queue_manager = RedisQueue()

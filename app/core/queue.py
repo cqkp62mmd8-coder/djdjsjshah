@@ -1,5 +1,7 @@
 import json
-from core.redis import redis_client, QUEUE_KEY
+from core.redis import redis_client
+
+QUEUE_KEY = "firsat_queue"
 
 class RedisQueue:
 

@@ -1,37 +1,95 @@
-from core.config import settings
-from core.logger import log
-from services.parser_service import extract_discount, extract_links, extract_price
-from services.duplicate_service import is_duplicate, mark_seen
-from services.scoring_service import quality_score
+from services.parser_service import (
 
-async def handle_message(text: str):
-    text = text or ""
+    extract_discount,
+
+    extract_links,
+
+    extract_prices,
+
+    extract_product_name
+
+)
+
+from services.category_service import detect_category
+
+from services.store_service import detect_store
+
+from services.scoring_service import calculate_quality_score
+
+from services.duplicate_service import (
+
+    is_duplicate,
+
+    remember
+
+)
+
+from services.ai_service import ai_rewrite
+
+from core.config import settings
+
+async def handle_message(text):
+
+    if not text:
+
+        return None
 
     if is_duplicate(text):
+
         return None
 
     discount = extract_discount(text)
-    links = extract_links(text)
-    prices = extract_price(text)
 
     if discount < settings.MIN_INDIRIM:
+
         return None
 
-    score = quality_score(
+    links = extract_links(text)
+
+    prices = extract_prices(text)
+
+    product = extract_product_name(text)
+
+    category = detect_category(text)
+
+    store = detect_store(text)
+
+    score = calculate_quality_score(
+
         discount=discount,
+
         has_link=len(links) > 0,
-        has_price=len(prices) > 0
+
+        has_price=len(prices) > 0,
+
+        has_product=product is not None
+
     )
 
     if score < settings.MIN_KALITE:
-        log.warn(f"Low quality skipped: {score}")
+
         return None
 
-    mark_seen(text)
+    remember(text)
+
+    rewritten = ai_rewrite(product, score)
 
     return {
+
         "text": text,
+
         "discount": discount,
+
         "links": links,
+
+        "prices": prices,
+
+        "product": rewritten,
+
+        "category": category,
+
+        "store": store,
+
         "score": score
+
     }

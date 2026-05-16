@@ -1,0 +1,15 @@
+def ai_rewrite(title, score):
+
+    if not title:
+
+        return "Fırsat"
+
+    if score >= 80:
+
+        return f"🔥 KAÇMAZ FIRSAT | {title}"
+
+    if score >= 60:
+
+        return f"💥 BÜYÜK İNDİRİM | {title}"
+
+    return f"🛍️ FIRSAT | {title}"

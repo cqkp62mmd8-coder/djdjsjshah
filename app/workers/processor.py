@@ -1,22 +1,26 @@
 import asyncio
 from core.queue import queue_manager
-from services.publisher import publish_message
 from core.logger import log
 
-async def worker_loop(worker_id: int):
+class ProcessorWorker:
 
-    log.info(f"Worker-{worker_id} started")
+    def __init__(self, publisher):
+        self.publisher = publisher
 
-    while True:
-        item = await queue_manager.pop()
+    async def run(self, worker_id: int):
 
-        if not item:
-            continue
+        log.info(f"Worker-{worker_id} started")
 
-        try:
-            await publish_message(item)
+        while True:
+            item = await queue_manager.pop()
 
-        except Exception as e:
-            log.error(f"Worker-{worker_id} error: {e}")
+            if not item:
+                continue
 
-        await asyncio.sleep(0.1)
+            try:
+                await self.publisher.publish(item)
+
+            except Exception as e:
+                log.error(f"Worker-{worker_id} failed: {e}")
+
+            await asyncio.sleep(0.1)

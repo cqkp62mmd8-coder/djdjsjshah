@@ -1,17 +1,39 @@
-def quality_score(discount: int, has_link: bool, has_price: bool):
+def calculate_quality_score(
+
+    discount,
+
+    has_link,
+
+    has_price,
+
+    has_product
+
+):
+
     score = 0
 
-    if discount >= 50:
+    if discount >= 70:
+
         score += 40
+
+    elif discount >= 50:
+
+        score += 30
+
     elif discount >= 30:
-        score += 25
-    else:
-        score += 10
+
+        score += 20
 
     if has_link:
+
         score += 20
 
     if has_price:
+
+        score += 20
+
+    if has_product:
+
         score += 20
 
     return score

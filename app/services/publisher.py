@@ -1,17 +1,37 @@
 from core.logger import log
-from core.config import settings
 
-async def publish_message(item):
+class Publisher:
 
-    text = item["text"]
-    score = item["score"]
-    links = item.get("links", [])
+    def __init__(self, telegram_service):
+        self.tg = telegram_service
 
-    final_text = f"🔥 Fırsat Skoru: {score}/10\n\n{text}"
+    async def publish(self, item):
 
-    # burada TELEGRAM SEND BAĞLANACAK
-    # (client inject edeceğiz main'de)
+        text = item["text"]
+        score = item["score"]
+        links = item.get("links", [])
+        media = item.get("media")
 
-    log.info(f"Published score={score}")
+        final_text = f"🔥 <b>Fırsat Skoru: {score}/10</b>\n\n{text}"
 
-    return final_text
+        buttons = None
+        if links:
+            from telethon.tl.types import KeyboardButtonUrl, KeyboardButtonRow, ReplyInlineMarkup
+
+            buttons = ReplyInlineMarkup(rows=[
+                KeyboardButtonRow(buttons=[
+                    KeyboardButtonUrl(text="🔗 Fırsata Git", url=links[0])
+                ])
+            ])
+
+        msg = await self.tg.send(
+            text=final_text,
+            media=media,
+            buttons=buttons,
+            silent=False
+        )
+
+        if msg:
+            log.info(f"Published OK | score={score}")
+
+        return msg

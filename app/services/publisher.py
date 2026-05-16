@@ -1,37 +1,93 @@
+from services.template_service import render_template
+
+from services.media_service import process_image
+
+from telethon.tl.types import (
+
+    KeyboardButtonUrl,
+
+    KeyboardButtonRow,
+
+    ReplyInlineMarkup
+
+)
+
 from core.logger import log
 
 class Publisher:
 
-    def __init__(self, telegram_service):
-        self.tg = telegram_service
+    def __init__(
+
+        self,
+
+        tg_service,
+
+        client
+
+    ):
+
+        self.tg = tg_service
+
+        self.client = client
 
     async def publish(self, item):
 
-        text = item["text"]
-        score = item["score"]
-        links = item.get("links", [])
-        media = item.get("media")
+        final_text = render_template(item)
 
-        final_text = f"🔥 <b>Fırsat Skoru: {score}/10</b>\n\n{text}"
+        media = await process_image(
+
+            self.client,
+
+            item.get("media")
+
+        )
 
         buttons = None
-        if links:
-            from telethon.tl.types import KeyboardButtonUrl, KeyboardButtonRow, ReplyInlineMarkup
 
-            buttons = ReplyInlineMarkup(rows=[
-                KeyboardButtonRow(buttons=[
-                    KeyboardButtonUrl(text="🔗 Fırsata Git", url=links[0])
-                ])
-            ])
+        links = item.get("links", [])
+
+        if links:
+
+            buttons = ReplyInlineMarkup(
+
+                rows=[
+
+                    KeyboardButtonRow(
+
+                        buttons=[
+
+                            KeyboardButtonUrl(
+
+                                text="🔗 Fırsata Git",
+
+                                url=links[0]
+
+                            )
+
+                        ]
+
+                    )
+
+                ]
+
+            )
 
         msg = await self.tg.send(
+
             text=final_text,
+
             media=media,
-            buttons=buttons,
-            silent=False
+
+            buttons=buttons
+
         )
 
         if msg:
-            log.info(f"Published OK | score={score}")
+
+            log.info(
+
+                f"PUBLISHED | {item['store']} | score={item['score']}"
+
+            )
 
         return msg

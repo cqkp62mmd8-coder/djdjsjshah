@@ -1,32 +1,125 @@
 import asyncio
-from telethon import TelegramClient, events
+
+from telethon import (
+
+    TelegramClient,
+
+    events
+
+)
+
+from telethon.sessions import (
+
+    StringSession
+
+)
 
 from core.config import settings
-from handlers.listener import on_telegram_message
-from workers.processor import ProcessorWorker
-from services.publisher import Publisher
-from services.telegram_service import TelegramService
 
-client = TelegramClient("session", settings.API_ID, settings.API_HASH)
+from handlers.listener import (
+
+    on_telegram_message
+
+)
+
+from workers.processor import (
+
+    ProcessorWorker
+
+)
+
+from services.telegram_service import (
+
+    TelegramService
+
+)
+
+from services.publisher import (
+
+    Publisher
+
+)
+
+from core.logger import log
+
+SOURCE_CHANNELS = [
+
+    "@amazonsicakfirsatlar",
+
+    "@donanimhabersicakfirsatlar",
+
+    "@firsatpaylasim"
+
+]
+
+client = TelegramClient(
+
+    StringSession(settings.SESSION_STRING),
+
+    settings.API_ID,
+
+    settings.API_HASH
+
+)
 
 async def main():
 
     await client.start()
 
-    tg_service = TelegramService(client, settings.CHANNEL_ID)
-    publisher = Publisher(tg_service)
-    worker = ProcessorWorker(publisher)
+    log.info("Client connected")
 
-    # Listener
-    @client.on(events.NewMessage(chats=[]))
-    async def handler(event):
-        await on_telegram_message(event)
+    tg_service = TelegramService(
 
-    # Workers
+        client,
+
+        settings.CHANNEL_ID
+
+    )
+
+    publisher = Publisher(
+
+        tg_service,
+
+        client
+
+    )
+
+    worker = ProcessorWorker(
+
+        publisher
+
+    )
+
     for i in range(4):
-        asyncio.create_task(worker.run(i))
+
+        asyncio.create_task(
+
+            worker.run(i)
+
+        )
+
+    @client.on(
+
+        events.NewMessage(
+
+            chats=SOURCE_CHANNELS
+
+        )
+
+    )
+
+    async def handler(event):
+
+        await on_telegram_message(
+
+            event
+
+        )
+
+    log.info("System online")
 
     await client.run_until_disconnected()
 
 if __name__ == "__main__":
+
     asyncio.run(main())

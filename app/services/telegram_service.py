@@ -1,23 +1,49 @@
 from core.logger import log
 
 class TelegramService:
-    def __init__(self, client, channel_id):
-        self.client = client
-        self.channel_id = channel_id
 
-    async def send(self, text, media=None, buttons=None, silent=False):
+    def __init__(self, client, channel):
+
+        self.client = client
+
+        self.channel = channel
+
+    async def send(
+
+        self,
+
+        text,
+
+        media=None,
+
+        buttons=None
+
+    ):
 
         try:
+
             msg = await self.client.send_message(
-                self.channel_id,
+
+                self.channel,
+
                 text,
+
                 file=media,
+
                 parse_mode="html",
-                buttons=buttons,
-                silent=silent
+
+                buttons=buttons
+
             )
+
             return msg
 
         except Exception as e:
-            log.error(f"Telegram send error: {e}")
+
+            log.error(
+
+                f"Telegram send failed: {e}"
+
+            )
+
             return None

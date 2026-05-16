@@ -1,17 +1,33 @@
 import hashlib
 
-_seen = {}
+seen_cache = {}
 
-def make_key(text: str):
-    text = (text or "").lower().replace(" ", "")
-    return hashlib.md5(text.encode()).hexdigest()
+def generate_hash(text):
 
+    normalized = (
 
-def is_duplicate(text: str):
-    key = make_key(text)
-    return key in _seen
+        text.lower()
 
+        .replace(" ", "")
 
-def mark_seen(text: str):
-    key = make_key(text)
-    _seen[key] = True
+        .strip()
+
+    )
+
+    return hashlib.md5(
+
+        normalized.encode()
+
+    ).hexdigest()
+
+def is_duplicate(text):
+
+    h = generate_hash(text)
+
+    return h in seen_cache
+
+def remember(text):
+
+    h = generate_hash(text)
+
+    seen_cache[h] = True
